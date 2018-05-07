@@ -1,0 +1,200 @@
+<div class="row">
+  <div class="form-group">
+    <form>
+      <div class="form-group">
+        <div class="col-md-10">
+          <input type="text" class="form-control" placeholder="Enter keyword" [(ngModel)]="filterString" name="filter" (keyup)="search()">
+        </div>
+        <div class="col-md-2">
+          <button type="button" class="btn btn-primary" (click)="openFilterModal(moreFiltertemplate)">More Filters</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<br/>
+<div class="row">
+  <div class="form-group">
+    <div class="col-md-4">
+      <button type="button" class="btn btn-primary" (click)="openRepoModal(repotemplate,null)">Add Repo</button>
+    </div>
+    <div class="col-md-4">
+      <div class="btn-group" btnRadioGroup [(ngModel)]="sortBy" (click)="search()">
+        <label class="btn btn-default" btnRadio="stars"
+               tabindex="0" role="button">Stars</label>
+        <label class="btn btn-default" btnRadio="forks"
+               tabindex="0" role="button">Forks</label>
+        <label class="btn btn-default" btnRadio="updated"
+               tabindex="0" role="button">Updated</label>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="btn-group" btnRadioGroup [(ngModel)]="orderBy" (click)="search()">
+        <label class="btn btn-default" btnRadio="desc"
+               tabindex="0" role="button">Descending</label>
+        <label class="btn btn-default" btnRadio="asc"
+               tabindex="0" role="button">Ascending</label>
+      </div>
+    </div>
+  </div>
+</div>
+<br/>
+<div *ngIf="toprepos">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Top 10 Repositories</h3>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-12">
+          <div *ngFor="let repo of toprepos.items; let i= index;">
+            <div class="row">
+              <div class="col-md-7">
+                <h4><a href="{{repo.html_url}}" target="_blank">{{repo.name}}</a></h4>
+                <p>{{repo.description}}</p>
+              </div>
+              <div class="col-md-2">
+                <span class="label label-default">{{repo.watchers}} Watchers</span>
+                <span class="label label-primary">{{repo.forks}} Forks</span>
+                <span class="label label-success">{{repo.stargazers_count}} Stars</span>
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-default" (click)="openRepoModal(repotemplate,repo)">Edit</button>
+                <button class="btn btn-danger" (click)="openDeleteConf(deleteConfirmtemplate)">Delete</button>
+              </div>
+            </div>
+            <hr />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-footer" style="align-content: right">Total Count:{{toprepos.total_count}}</div>
+  </div>
+</div>
+
+<ng-template #moreFiltertemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">More filters</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRefMoreFilter.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="row">
+        <div class="col-md-12">
+          <table class="table table-responsive table-bordered">
+            <tr>
+              <th>Filter name</th>
+              <th>Value</th>
+              <th><button class="btn btn-sm btn-primary" (click)="addFilter()" >Add</button> </th>
+            </tr>
+            <tr *ngFor="let filter of moreFilters; let i = index">
+              <td>
+                <select [(ngModel)]="filter.filterName" class="form-control">
+                  <option *ngFor="let f of filters" [value]="f.value">{{f.name}}</option>
+                </select>
+              </td>
+              <td>
+                <div *ngIf="filter.filterName === 'created'">
+                  <input type="text" class="form-control" placeholder="YYYY-MM-DD" [(ngModel)]="filter.filterValue"/>
+
+                </div>
+                <div *ngIf="filter.filterName === 'fork'">
+                  <select [(ngModel)]="filter.filterValue" class="form-control">
+                    <option value="true">True</option>
+                    <option value="only">Only</option>
+                  </select>
+                </div>
+                <div *ngIf="filter.filterName === 'forks' || filter.filterName === 'size' ||
+                   filter.filterName === 'stars'">
+                  <input type="text" class="form-control" onlyNumber="true" [(ngModel)]="filter.filterValue"/>
+                </div>
+                <div *ngIf="filter.filterName === 'in'">
+                  <select [(ngModel)]="filter.filterValue" class="form-control">
+                    <option value="name">Name</option>
+                    <option value="description">Description</option>
+                    <option value="readme">Read Me</option>
+                  </select>
+                </div>
+                <div *ngIf="filter.filterName === 'language' || filter.filterName === 'license' ||
+                filter.filterName === 'user' || filter.filterName === 'topic'">
+                  <input type="text" class="form-control" [(ngModel)]="filter.filterValue"/>
+                </div>
+                <div *ngIf="filter.filterName === 'archived'">
+                  <select [(ngModel)]="filter.filterValue" class="form-control">
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                </div>
+              </td>
+              <td><button class="btn btn-danger" (click)="deleteFilter(i)">delete</button></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" (click)="modalRefMoreFilter.hide()">close</button>
+    <button class="btn btn-success" (click)="moreFilterSearch()">Go</button>
+  </div>
+</ng-template>
+
+<ng-template #repotemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Repository</h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="closeRepoModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="row">
+        <div class="form-group">
+          <div class="col-md-12">
+            <label>Repository Name</label>
+            <input type="text" class="form-control" placeholder="Name" [(ngModel)]="repoModel.name"/>
+          </div>
+        </div>
+      </div>
+      <br/>
+      <div class="row">
+        <div class="form-group">
+          <div class="col-md-12">
+            <label>Description</label>
+            <textarea rows="3" class="form-control" placeholder="Description" [(ngModel)]="repoModel.description"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" (click)="closeRepoModal()">close</button>
+    <button class="btn btn-success">Save</button>
+  </div>
+</ng-template>
+
+<ng-template #deleteConfirmtemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left"><strong>Alert</strong></h4>
+    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRefDeleteConf.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="row">
+        <div class="form-group">
+          <div class="col-md-12">
+            Are you sure you want to delete this repository?
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" (click)="modalRefDeleteConf.hide()">No</button>
+    <button class="btn btn-success">Yes</button>
+  </div>
+</ng-template>
